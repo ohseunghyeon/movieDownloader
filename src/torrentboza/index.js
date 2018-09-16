@@ -87,6 +87,4 @@ function collectData(list) {
     return list;
 }
 
-// getAv('TPPN-062');
-
 module.exports = getAv;
