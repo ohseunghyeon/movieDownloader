@@ -1,22 +1,29 @@
 const http = require('http');
 const url = require('url');
-const searchByKeyword = require('./src');
+const { log, error } = require('./src/util');
+const searchByProductNumber = require('./src/searchByProductNumber');
 
 http.createServer((req, res) => {
-    if (url.parse(req.url).query) {
-        const word = url.parse(req.url).query.substr(6);
-        console.log(word);
-        searchByKeyword(word)
-            .then((results) => {
-                res.end(JSON.stringify({ entryName: word, mean: results }))
-            })
-            .catch(err => res.end(JSON.stringify({ entryName: word, mean: [err.message] })));
+  const queryString = url.parse(req.url).query;
 
-    } else {
-        console.log('문제 생김');
-        console.log(url.parse(req.url).query);
-        res.end(JSON.stringify({ entryName: '문제', mean: ["생김"] }));
-    }
+  if (queryString) {
+    const pn = queryString.substr(6);
+    log(pn);
+
+    searchByProductNumber(pn)
+      .then(results => res.end(JSON.stringify({ entryName: pn, mean: results })))
+      .catch(err => {
+        error(err);
+        res.end(JSON.stringify({ entryName: pn, mean: [err.message] }))
+      });
+
+  } else {
+    log('문제 생김');
+    log(queryString);
+    res.end(JSON.stringify({ entryName: '문제', mean: ["생김"] }));
+  }
 }).listen(80, () => {
-    console.log('server listens 80 port');
+  log('server listens 80 port');
 })
+
+console.log(new Date())

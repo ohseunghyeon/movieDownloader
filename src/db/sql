@@ -1,0 +1,25 @@
+avs
+CREATE TABLE IF NOT EXISTS av.AVS(
+  pn VARCHAR(255),
+  fetched_time DATETIME,
+  PRIMARY KEY (pn)
+)
+
+magnets
+CREATE TABLE IF NOT EXISTS av.MAGNETS(
+  id INT NOT NULL,
+  pn INT NOT NULL,
+  magnet VARCHAR(255),
+  torrent VARCHAR(255),
+  site INT NOT NULL,
+  deadReport INT NOT NULL // default 0
+  PRIMARY KEY (id)
+)
+
+sites
+CREATE TABLE IF NOT EXISTS av.SITES(
+  id INT NOT NULL,
+  title VARCHAR(255),
+  url VARCHAR(255),
+  PRIMARY KEY (id)
+)
