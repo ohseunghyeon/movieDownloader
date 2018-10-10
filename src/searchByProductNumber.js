@@ -13,7 +13,7 @@ async function searchByProductNumber(pn) {
      */
 
     // 1. 해당 pn이 등록되어 있는지 확인하고 없으면 생성
-    await db.registerPn(pn);
+    const pnId = await db.getPnId(pn);
 
     // 그리고 마그넷, 토렌트주소가 있는지 확인해야지. 
     const result = await db.getPn(pn);
@@ -21,7 +21,7 @@ async function searchByProductNumber(pn) {
 
     // 결과물은 어레이이며 title, magnet, torrent, url을 포함
     if (result.length) return result;
-    else return await crawler.crawl(pn);
+    else return await crawler.crawl(pn, pnId);
 
   } catch (e) {
     throw e;

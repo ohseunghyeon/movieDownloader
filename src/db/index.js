@@ -12,7 +12,7 @@ const connection = mysql.createConnection({
 openDBConnection();
 
 connection.on('error', (err) => {
-  error('error on db' + err.stack);
+  error(err);
   if (err.code === 'PROTOCOL_CONNECTION_LOST') connect();
 });
 
@@ -21,7 +21,7 @@ function openDBConnection() {
   if (connection.state === 'disconnected') {
     connection.connect((err) => {
       if (err) {
-        error('db error connecting: ' + err.stack);
+        error(err);
         connection.end();
       } else {
         log('connected as id ' + connection.threadId);
@@ -41,18 +41,25 @@ function query(qs) {
   });
 }
 
-async function registerPn(pn) {
+async function getPnId(pn) {
   try {
-    const result = await query(`SELECT * FROM AVS WHERE pn = '${pn}'`);
-    if (!result.length) await query(`INSERT INTO AVS (pn) VALUES ('${pn}')`)
+    let id;
+    const rows = await query(`SELECT * FROM AVS WHERE pn = '${pn}'`);
+
+    if (result.length)
+      id = rows[0].id;
+    else
+      id = (await query(`INSERT INTO AVS (pn) VALUES ('${pn}')`)).insertId;
+
+    return id;
   } catch (error) {
     throw error;
   }
 }
 
-function savePnMagnetTorrent({ SITE_NAME, SITE_URL, pn, title, torrentURL }) {
+function savePnMagnetTorrent({ SITE_NAME, SITE_URL, pn, m, torrent }) {
   // 우선 해당 사이트 id 가져오기
-  query(`INSERT INTO MAGNETS ()`)
+  query(`INSERT INTO MAGNETS (pn, magnet, site, torrent)`)
   db[pn]
 }
 
@@ -60,4 +67,4 @@ function getPn(pn) {
   return query(`SELECT * FROM MAGNETS WHERE pn = '${pn}'`);
 }
 
-module.exports = { registerPn, getPn, savePnMagnetTorrent }
+module.exports = { getPnId, getPn, savePnMagnetTorrent }

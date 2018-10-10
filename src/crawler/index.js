@@ -10,7 +10,7 @@ const { log } = require('../util');
  * 1. 사이트 리스트는 다 뒤져봐야지.
  * 2. 안 찾을 사이트도 구상해봐야지.
  */
-async function crawl(pn) {
+async function crawl(pn, pnId) {
   log('in crawl');
 
   try {
@@ -19,7 +19,7 @@ async function crawl(pn) {
 
     console.log(magnets);
     // db에 저장
-    // await Promise.all(agnets.map(m => db.savePnMagnetTorrent(m)));
+    await Promise.all(magnets.map(m => db.savePnMagnetTorrent({ pn, pnId, ...m })));
 
     return magnets;
 

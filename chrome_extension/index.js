@@ -88,7 +88,10 @@ function parsingWord(str, offset) {
   var word = str.substring(start, end);
   if (start == offset) return null;
   if (/^[A-Za-z]*$/.test(word)) return null;
-  if (/^[0-9]*$/.test(word)) return null;
+  if (/^[0-9]*$/.test(word)) {
+    console.log('숫자가 없어요.')
+    return null;
+  }
   // to do: -가 여러개인 경우도 제외하기
   word = word.toLowerCase();
   word = decodeUnicode(word);

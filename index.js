@@ -24,6 +24,4 @@ http.createServer((req, res) => {
   }
 }).listen(80, () => {
   log('server listens 80 port');
-})
-
-console.log(new Date())
+});
