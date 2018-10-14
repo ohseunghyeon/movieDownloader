@@ -53,7 +53,7 @@ function gethoverDiv(event) {
   if (!hoverTipDiv && event) { hoverTipDiv = event.target.ownerDocument.getElementById("ToolTipDic") } return hoverTipDiv
 }
 function killHoverTip() {
-  console.log('in killHoverTip');
+  // console.log('in killHoverTip');
 
   var hoverTipDiv = gethoverDiv();
   if (hoverTipDiv && hoverTipDiv.parentNode) hoverTipDiv.parentNode.removeChild(hoverTipDiv)
@@ -108,6 +108,7 @@ function decodeUnicode(data) {
   data = data.replace(/&#(\d+);/gm, function () { return String.fromCharCode(RegExp.$1) });
   return data
 }
+
 function getHoverText(event) {
   // console.log('in getHoverText');
 
@@ -136,6 +137,7 @@ function getHoverText(event) {
   hoverTipDiv.style.setProperty("top", String(top) + "px", "important");
   return text
 }
+
 function PositionCorrection(elem) {
   // console.log('in PositionCorrection');
 
@@ -181,14 +183,16 @@ function doRequest(word) {
     }
   })
 }
-var mousemoveCapture = function (event) {
-  // console.log('in mousemoveCapture');
 
+function mousemoveCapture(event) {
+
+  // #document
   currDoc = event.target.ownerDocument;
   if (!currDoc) return;
   var text;
-  CursorX = (window.Event) ? event.pageX : event.clientX + (document.documentElement.scrollLeft ? document.documentElement.scrollLeft : document.body.scrollLeft);
-  CursorY = (window.Event) ? event.pageY : event.clientY + (document.documentElement.scrollTop ? document.documentElement.scrollTop : document.body.scrollTop);
+  console.log(event.pageX, event.pageY)
+  CursorX = window.Event ? event.pageX : event.clientX + (document.documentElement.scrollLeft || document.body.scrollLeft);
+  CursorY = window.Event ? event.pageY : event.clientY + (document.documentElement.scrollTop || document.body.scrollTop);
   text = getHoverText(event);
   if (text) DelayedRequest(text);
   $(currDoc).mouseleave(function () {
@@ -196,27 +200,6 @@ var mousemoveCapture = function (event) {
     killHoverTip()
   })
 };
-function init() {
-  console.log('in init');
-  var message = { settingValue: fontSize };
-  var request = JSON.stringify(message);
-  chrome.extension.sendRequest(request, function (response) {
-    console.log('sendRequest');
-    var setting = JSON.parse(response);
-    if (setting.fontSize != undefined) {
-      fontType = setting.fontType;
-      fontWeight = setting.fontWeight;
-      fontSize = setting.fontSize;
-      fontColor = setting.fontColor;
-      borderSize = setting.borderSize;
-      borderColor = setting.borderColor;
-      backColor1 = setting.backColor1;
-      backColor2 = setting.backColor2;
-      boxPosition = setting.boxPosition;
-      offsetDistance = setting.offsetDistance;
-      delayedTime = setting.delayedTime
-    }
-  });
-  window.addEventListener('mousemove', mousemoveCapture, true)
-}
-init();
+
+console.log('init');
+window.addEventListener('mousemove', mousemoveCapture, true)
