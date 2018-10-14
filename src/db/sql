@@ -8,11 +8,14 @@ CREATE TABLE IF NOT EXISTS av.AVS(
 
 magnets
 CREATE TABLE IF NOT EXISTS av.MAGNETS(
-  id INT NOT NULL,
+  id INT NOT NULL AUTO_INCREMENT,
   pn INT NOT NULL,
   magnet VARCHAR(255),
   torrent VARCHAR(255),
   site INT NOT NULL,
+  title VARCHAR(255),
+  size VARCHAR(20),
+  addedDate VARCHAR(20),
   deadReport INT NOT NULL, /* default 0*/
   PRIMARY KEY (id),
   FOREIGN KEY (pn) REFERENCES av.AVS(id)

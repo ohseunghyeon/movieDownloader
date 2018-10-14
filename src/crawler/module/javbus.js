@@ -17,21 +17,21 @@ async function get(pn) {
     let links = await page.evaluate(() => {
       const magnets = document.querySelector('#magnet-table');
 
-      if (!magnets) {
-        return 'javbus no results';
-      }
+      if (!magnets) return undefined;
 
-      const anchors = Array.from(document.querySelectorAll('table#magnet-table tr'));
-      return anchors.map(anchor => {
-        const a = anchor.querySelector('a');
+      const rows = Array.from(document.querySelectorAll('table#magnet-table > tr'));
+      return rows.map(row => {
+        const a = row.querySelector('a');
         if (!a) return null;
-        return a.getAttribute('href');
+
+        const magnet = a.getAttribute('href');
+        const [title, size, addedDate] = Array.from(row.querySelectorAll('td > a')).map(a => a.innerText.trim());
+
+        return { magnet, title, size, addedDate };
       }).filter(a => a);
     });
 
     browser.close();
-
-    if (!Array.isArray(links)) links = undefined;
 
     return {
       SITE_NAME,

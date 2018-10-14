@@ -46,7 +46,7 @@ async function getPnId(pn) {
     let id;
     const rows = await query(`SELECT * FROM AVS WHERE pn = '${pn}'`);
 
-    if (result.length)
+    if (rows.length)
       id = rows[0].id;
     else
       id = (await query(`INSERT INTO AVS (pn) VALUES ('${pn}')`)).insertId;
@@ -57,10 +57,11 @@ async function getPnId(pn) {
   }
 }
 
-function savePnMagnetTorrent({ SITE_NAME, SITE_URL, pn, m, torrent }) {
-  // 우선 해당 사이트 id 가져오기
-  query(`INSERT INTO MAGNETS (pn, magnet, site, torrent)`)
-  db[pn]
+function savePnMagnetTorrent({ pn, pnId, SITE_NAME, SITE_URL, m }) {
+  let siteId;
+  if (SITE_NAME === 'javbus') siteId = 1;
+
+  return query(`INSERT INTO MAGNETS (pn, magnet, site, title, size, addedDate) VALUES ${m.map(a => `(${pnId},'${a.magnet}','${siteId}','${a.title}','${a.size}','${a.addedDate}')`).join(',')}`)
 }
 
 function getPn(pn) {

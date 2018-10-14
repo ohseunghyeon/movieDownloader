@@ -17,11 +17,10 @@ async function crawl(pn, pnId) {
     // 크롤링을 했으면 fetched date를 업데이트 해야 해.
     const magnets = await Promise.all(modules.map(m => m(pn)));
 
-    console.log(magnets);
     // db에 저장
-    await Promise.all(magnets.map(m => db.savePnMagnetTorrent({ pn, pnId, ...m })));
+    await Promise.all(magnets.map(magnet => db.savePnMagnetTorrent({ pn, pnId, ...magnet })));
 
-    return magnets;
+    return magnets.reduce((prev, cur) => prev.concat(cur.m), []);
 
   } catch (error) {
     throw error;
