@@ -1,8 +1,8 @@
-var currDoc = null;
+var document = null;
 var DelayTimer = undefined;
 var ToolTipWord = "";
-var CursorX = 0;
-var CursorY = 0;
+let CursorX = 0;
+let CursorY = 0;
 var fontType = "맑은 고딕";
 var fontWeight = "bold";
 var fontSize = 9;
@@ -17,11 +17,11 @@ var delayedTime = 200;
 
 function createHoverTip() {
   console.log('in createHoverTip');
-  if (!currDoc) return null;
+  if (!document) return null;
   var hoverTipDiv = gethoverDiv();
   if (hoverTipDiv) return hoverTipDiv;
-  if (!currDoc.body) return null;
-  hoverTipDiv = currDoc.createElement("DIV");
+  if (!document.body) return null;
+  hoverTipDiv = document.createElement("DIV");
   hoverTipDiv.id = "ToolTipDic";
   hoverTipDiv.style.setProperty("display", "none", "important");
   hoverTipDiv.style.setProperty("visibility", "hidden", "important");
@@ -36,7 +36,7 @@ function createHoverTip() {
   hoverTipDiv.style.setProperty("align", "absmiddle", "important");
   hoverTipDiv.style.setProperty("font-size", String(fontSize) + "pt", "important");
   hoverTipDiv.style.setProperty("line-height", "normal", "important");
-  (currDoc.body).appendChild(hoverTipDiv);
+  (document.body).appendChild(hoverTipDiv);
   $('#ToolTipDic').attr('class', 'tooltip_dic');
   var fontTypeValue = fontType;
   var fontWeightValue = fontWeight;
@@ -49,7 +49,7 @@ function createHoverTip() {
 function gethoverDiv(event) {
   // console.log('in gethoverDiv');
   var hoverTipDiv;
-  if (currDoc) hoverTipDiv = currDoc.getElementById("ToolTipDic");
+  if (document) hoverTipDiv = document.getElementById("ToolTipDic");
   if (!hoverTipDiv && event) { hoverTipDiv = event.target.ownerDocument.getElementById("ToolTipDic") } return hoverTipDiv
 }
 function killHoverTip() {
@@ -59,8 +59,6 @@ function killHoverTip() {
   if (hoverTipDiv && hoverTipDiv.parentNode) hoverTipDiv.parentNode.removeChild(hoverTipDiv)
 }
 function DelayedRequest(text) {
-  // console.log('in DelayedRequest');
-
   clearTimeout(DelayTimer);
   if (!text) return;
   ToolTipWord = text;
@@ -69,6 +67,76 @@ function DelayedRequest(text) {
     doRequest(text)
   }, parseInt(delayedTime), text)
 }
+
+
+function decodeUnicode(data) {
+  // console.log('in decodeUnicode');
+
+  if (!data) return data;
+  data = data.replace(/&#(\d+);/gm, function () { return String.fromCharCode(RegExp.$1) });
+  return data
+}
+
+// 0
+console.log('init');
+window.addEventListener('mousemove', mousemoveCapture, true)
+document.onmouseleave = onLeaveDocument;
+function onLeaveDocument() {
+  console.log('left document');
+  DelayedRequest(null);
+  killHoverTip()
+}
+
+// 1
+function mousemoveCapture(event) {
+
+  // #document
+  // 이게 뭔지부터 알아내는 게 추리의 시작이다.
+  document = event.target.ownerDocument;
+  if (!document) return;
+  CursorX = window.Event ? event.pageX : event.clientX + (document.documentElement.scrollLeft || document.body.scrollLeft);
+  CursorY = window.Event ? event.pageY : event.clientY + (document.documentElement.scrollTop || document.body.scrollTop);
+  const text = getHoverText(event);
+  if (text) DelayedRequest(text);
+
+};
+
+// 2
+function getHoverText(event) {
+  let text;
+  if (document.caretRangeFromPoint) {
+    // 이 함수 되게 신기한 게.. 해당 좌표에 있는 노드를 가져오네? 별 일..
+    var range = document.caretRangeFromPoint(event.clientX, event.clientY);
+    if (range && range.commonAncestorContainer && range.commonAncestorContainer.nodeName.indexOf("text") != -1) {
+      text = parsingWord(range.commonAncestorContainer.textContent, range.startOffset)
+    }
+  }
+
+  if (!text || !text.length) {
+    DelayedRequest(null);
+    killHoverTip();
+    return false
+  }
+
+  var hoverTipDiv = document.getElementById("ToolTipDic");
+  if (hoverTipDiv && ToolTipWord.indexOf(text) != -1) return false;
+  killHoverTip();
+  hoverTipDiv = createHoverTip();
+  var zoom = 1.0;
+  if (document.body.style.zoom) zoom = parseFloat(document.body.style.zoom);
+  var dLeft = parseInt(document.defaultView.getComputedStyle(document.body, null).getPropertyValue("left"));
+  if (isNaN(dLeft)) dLeft = 0;
+  hoverTipDiv.style.setProperty("left", String((event.pageX - dLeft) / zoom) + "px", "important");
+  var dTop = parseInt(document.defaultView.getComputedStyle(document.body, null).getPropertyValue("top"));
+  if (isNaN(dTop)) dTop = 0;
+  var top;
+  if (boxPosition == "UP") top = (event.pageY - parseInt(offsetDistance) - hoverTipDiv.offsetHeight - dTop) / zoom;
+  else top = (event.pageY + parseInt(offsetDistance) - dTop) / zoom;
+  hoverTipDiv.style.setProperty("top", String(top) + "px", "important");
+  return text
+}
+
+// 3
 function parsingWord(str, offset) {
   // console.log('in parsingWord'); // str는 그 줄에 있는 모든 것 offset은 그 줄에서 마우스가 있는 위치
 
@@ -101,50 +169,14 @@ function parsingWord(str, offset) {
   console.log('word', word);
   return word
 }
-function decodeUnicode(data) {
-  // console.log('in decodeUnicode');
-
-  if (!data) return data;
-  data = data.replace(/&#(\d+);/gm, function () { return String.fromCharCode(RegExp.$1) });
-  return data
-}
-
-function getHoverText(event) {
-  // console.log('in getHoverText');
-
-  var text;
-  if (currDoc.caretRangeFromPoint) {
-    var range = currDoc.caretRangeFromPoint(event.clientX, event.clientY);
-    if (range && range.commonAncestorContainer && range.commonAncestorContainer.nodeName.indexOf("text") != -1) text = parsingWord(range.commonAncestorContainer.textContent, range.startOffset)
-  } if (!text || !text.length) {
-    DelayedRequest(null);
-    killHoverTip();
-    return false
-  } var hoverTipDiv = currDoc.getElementById("ToolTipDic");
-  if (hoverTipDiv && ToolTipWord.indexOf(text) != -1) return false;
-  killHoverTip();
-  hoverTipDiv = createHoverTip();
-  var zoom = 1.0;
-  if (currDoc.body.style.zoom) zoom = parseFloat(currDoc.body.style.zoom);
-  var dLeft = parseInt(currDoc.defaultView.getComputedStyle(currDoc.body, null).getPropertyValue("left"));
-  if (isNaN(dLeft)) dLeft = 0;
-  hoverTipDiv.style.setProperty("left", String((event.pageX - dLeft) / zoom) + "px", "important");
-  var dTop = parseInt(currDoc.defaultView.getComputedStyle(currDoc.body, null).getPropertyValue("top"));
-  if (isNaN(dTop)) dTop = 0;
-  var top;
-  if (boxPosition == "UP") top = (event.pageY - parseInt(offsetDistance) - hoverTipDiv.offsetHeight - dTop) / zoom;
-  else top = (event.pageY + parseInt(offsetDistance) - dTop) / zoom;
-  hoverTipDiv.style.setProperty("top", String(top) + "px", "important");
-  return text
-}
 
 function PositionCorrection(elem) {
   // console.log('in PositionCorrection');
 
   var zoom = 1.0;
-  if (currDoc.body.style.zoom) zoom = parseFloat(currDoc.body.style.zoom);
-  var aTop = parseInt(currDoc.defaultView.getComputedStyle(elem, null).getPropertyValue("top"));
-  var aHeight = parseInt(currDoc.defaultView.getComputedStyle(elem, null).getPropertyValue("height"));
+  if (document.body.style.zoom) zoom = parseFloat(document.body.style.zoom);
+  var aTop = parseInt(document.defaultView.getComputedStyle(elem, null).getPropertyValue("top"));
+  var aHeight = parseInt(document.defaultView.getComputedStyle(elem, null).getPropertyValue("height"));
   var clientWidth = window.document.body.clientWidth;
   var clientHeight = window.document.body.clientHeight;
   var top, left;
@@ -163,6 +195,7 @@ function PositionCorrection(elem) {
   else left = CursorX;
   elem.style.setProperty("left", String(left / zoom) + "px", "important")
 }
+
 function doRequest(word) {
   console.log('in doRequest');
 
@@ -175,7 +208,7 @@ function doRequest(word) {
       var mean = response.mean.join(', ');
       TootipText = response.entryName + " : " + mean;
       var zoom = 1.0;
-      if (currDoc.body.style.zoom) { zoom = parseFloat(currDoc.body.style.zoom) } hoverTipDiv.style.setProperty("font-size", String(fontSize / zoom) + "pt", "important");
+      if (document.body.style.zoom) { zoom = parseFloat(document.body.style.zoom) } hoverTipDiv.style.setProperty("font-size", String(fontSize / zoom) + "pt", "important");
       hoverTipDiv.textContent = TootipText;
       hoverTipDiv.style.setProperty("display", "inline", "important");
       hoverTipDiv.style.setProperty("visibility", "visible", "important");
@@ -183,23 +216,3 @@ function doRequest(word) {
     }
   })
 }
-
-function mousemoveCapture(event) {
-
-  // #document
-  currDoc = event.target.ownerDocument;
-  if (!currDoc) return;
-  var text;
-  console.log(event.pageX, event.pageY)
-  CursorX = window.Event ? event.pageX : event.clientX + (document.documentElement.scrollLeft || document.body.scrollLeft);
-  CursorY = window.Event ? event.pageY : event.clientY + (document.documentElement.scrollTop || document.body.scrollTop);
-  text = getHoverText(event);
-  if (text) DelayedRequest(text);
-  $(currDoc).mouseleave(function () {
-    DelayedRequest(null);
-    killHoverTip()
-  })
-};
-
-console.log('init');
-window.addEventListener('mousemove', mousemoveCapture, true)
