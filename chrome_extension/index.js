@@ -58,6 +58,7 @@ function killHoverTip() {
   var hoverTipDiv = gethoverDiv();
   if (hoverTipDiv && hoverTipDiv.parentNode) hoverTipDiv.parentNode.removeChild(hoverTipDiv)
 }
+
 function DelayedRequest(text) {
   clearTimeout(DelayTimer);
   if (!text) return;
@@ -83,16 +84,11 @@ function onLeaveDocument() {
 
 // 1
 function mousemoveCapture(event) {
-
-  // #document
-  // 이게 뭔지부터 알아내는 게 추리의 시작이다.
-  // document = event.target.ownerDocument;
-  // if (!document) return;
   CursorX = window.Event ? event.pageX : event.clientX + (document.documentElement.scrollLeft || document.body.scrollLeft);
   CursorY = window.Event ? event.pageY : event.clientY + (document.documentElement.scrollTop || document.body.scrollTop);
+
   const text = getHoverText(event);
   if (text) DelayedRequest(text);
-
 };
 
 // 2
