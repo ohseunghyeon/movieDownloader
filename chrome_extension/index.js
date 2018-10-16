@@ -69,13 +69,7 @@ function DelayedRequest(text) {
 }
 
 
-function decodeUnicode(data) {
-  // console.log('in decodeUnicode');
 
-  if (!data) return data;
-  data = data.replace(/&#(\d+);/gm, function () { return String.fromCharCode(RegExp.$1) });
-  return data
-}
 
 // 0
 console.log('init');
@@ -92,8 +86,8 @@ function mousemoveCapture(event) {
 
   // #document
   // 이게 뭔지부터 알아내는 게 추리의 시작이다.
-  document = event.target.ownerDocument;
-  if (!document) return;
+  // document = event.target.ownerDocument;
+  // if (!document) return;
   CursorX = window.Event ? event.pageX : event.clientX + (document.documentElement.scrollLeft || document.body.scrollLeft);
   CursorY = window.Event ? event.pageY : event.clientY + (document.documentElement.scrollTop || document.body.scrollTop);
   const text = getHoverText(event);
@@ -162,12 +156,37 @@ function parsingWord(str, offset) {
   }
   // to do: -가 여러개인 경우도 제외하기
   word = word.toLowerCase();
-  word = decodeUnicode(word);
+
+  // decodeUnicode;
+  if (word)
+    word = word.replace(/&#(\d+);/gm, function () { return String.fromCharCode(RegExp.$1) });
+
   word = word.replace(/^[\s\.,!;\“\"\:'\[\]]+$/, "");
   word = word.replace(/,\s+?(,|$)/gm, "");
   word = word.replace(/[ㄱ-ㅎㅏ-ㅣ가-힣]/g, "");
   console.log('word', word);
   return word
+}
+
+function doRequest(word) {
+  console.log('in doRequest');
+
+  var hoverTipDiv = gethoverDiv();
+  var TootipText = "";
+  var message = { queryWord: word };
+  var request = JSON.stringify(message);
+  chrome.extension.sendRequest(request, function (response) {
+    if (response.mean != undefined) {
+      var mean = response.mean.join(', ');
+      TootipText = response.entryName + " : " + mean;
+      var zoom = 1.0;
+      if (document.body.style.zoom) { zoom = parseFloat(document.body.style.zoom) } hoverTipDiv.style.setProperty("font-size", String(fontSize / zoom) + "pt", "important");
+      hoverTipDiv.textContent = TootipText;
+      hoverTipDiv.style.setProperty("display", "inline", "important");
+      hoverTipDiv.style.setProperty("visibility", "visible", "important");
+      PositionCorrection(hoverTipDiv)
+    }
+  })
 }
 
 function PositionCorrection(elem) {
@@ -194,25 +213,4 @@ function PositionCorrection(elem) {
   if ((parseFloat(elem.style.left) + parseFloat(elem.offsetWidth)) * zoom > window.pageXOffset + viewportWidth) left = window.pageXOffset + viewportWidth - parseFloat(elem.offsetWidth) * zoom - 5;
   else left = CursorX;
   elem.style.setProperty("left", String(left / zoom) + "px", "important")
-}
-
-function doRequest(word) {
-  console.log('in doRequest');
-
-  var hoverTipDiv = gethoverDiv();
-  var TootipText = "";
-  var message = { queryWord: word };
-  var request = JSON.stringify(message);
-  chrome.extension.sendRequest(request, function (response) {
-    if (response.mean != undefined) {
-      var mean = response.mean.join(', ');
-      TootipText = response.entryName + " : " + mean;
-      var zoom = 1.0;
-      if (document.body.style.zoom) { zoom = parseFloat(document.body.style.zoom) } hoverTipDiv.style.setProperty("font-size", String(fontSize / zoom) + "pt", "important");
-      hoverTipDiv.textContent = TootipText;
-      hoverTipDiv.style.setProperty("display", "inline", "important");
-      hoverTipDiv.style.setProperty("visibility", "visible", "important");
-      PositionCorrection(hoverTipDiv)
-    }
-  })
 }
